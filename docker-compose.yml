@@ -1,0 +1,34 @@
+version: '3.9'
+
+services:
+  # MongoDB
+  mongo_csv:
+    image: mongo:latest
+    container_name: mongo_csv
+    volumes:
+      - mongo_data:/data/db   # volume externe pour persister les données
+    ports:
+      - "27017:27017"
+    networks:
+      - mongo_net
+
+  # Python
+  py_mig_csv:
+    build: .                  # construit l'image Python depuis le Dockerfile
+    container_name: py_mig_csv
+    depends_on:
+      - mongo_csv                 # attend que DB soit prêt
+    volumes:             
+      - ./data:/app/data
+    command: ["python", "/app/src/migrate_csv_to_mongo.py"]  # exécute le script
+    networks:
+      - mongo_net
+
+# Volume externe pour MongoDB
+volumes:
+  mongo_data:
+
+# Réseau dédié
+networks:
+  mongo_net:
+    driver: bridge
